@@ -289,40 +289,6 @@
             }
         }
 
-        .poodle-mascot {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 90px;
-            height: 90px;
-            z-index: 10;
-            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            flex-shrink: 0;
-        }
-
-        .poodle-mascot img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(-3deg); }
-            50% { transform: translateY(-10px) rotate(3deg); }
-        }
-
-        .poodle-mascot.bounce img {
-            animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-
-        @keyframes bounceIn {
-            0% { transform: scale(0) rotate(-180deg); }
-            50% { transform: scale(1.2) rotate(10deg); }
-            100% { transform: scale(1) rotate(0deg); }
-        }
-
         h1 {
             font-family: 'Cormorant Garamond', serif;
             color: #2d3561;
@@ -852,46 +818,6 @@
             display: none;
         }
 
-        /* Музыка */
-        .music-control {
-            position: fixed;
-            bottom: 15px;
-            right: 15px;
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #2d3561, #c05c7e);
-            border-radius: 50%;
-            border: 3px solid white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            transition: all 0.3s;
-            z-index: 900;
-            opacity: 0;
-        }
-
-        .music-control.show {
-            opacity: 1;
-            animation: fadeInScale 0.5s;
-        }
-
-        .music-control:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 30px rgba(192, 92, 126, 0.5);
-        }
-
-        .music-control.playing {
-            animation: pulse-music 2s infinite;
-        }
-
-        @keyframes pulse-music {
-            0%, 100% { box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-            50% { box-shadow: 0 4px 30px rgba(192, 92, 126, 0.8); }
-        }
-
         @keyframes fadeInScale {
             from { opacity: 0; transform: scale(0.8); }
             to { opacity: 1; transform: scale(1); }
@@ -899,19 +825,6 @@
     </style>
 </head>
 <body>
-    <script>
-    console.log('Проверка путей:');
-    console.log('Текущий URL:', window.location.href);
-    
-    // Проверяем доступность файлов
-    fetch('./poodle-greeting.png')
-        .then(r => console.log('Пудель ✓:', r.ok))
-        .catch(e => console.log('Ошибка пуделя:', e.message));
-    
-    fetch('./background-music.mp3')
-        .then(r => console.log('Музыка ✓:', r.ok))
-        .catch(e => console.log('Ошибка музыки:', e.message));
-</script>
     <div id="envelopeWrapper" class="envelope-wrapper">
         <div class="envelope" id="envelope" onclick="openEnvelope()">
             <div class="envelope-back"></div>
@@ -937,10 +850,6 @@
     </div>
 
     <div class="container" id="mainContainer">
-        <div class="poodle-mascot" id="poodleMascot">
-    <div id="poodleImage" style="font-size: 90px; display: flex; align-items: center; justify-content: center; height: 100%;">🐩</div>
-</div>
-
         <h1>Небольшой квест</h1>
         <p class="subtitle">Пройди три этапа, чтобы узнать сюрприз</p>
         
@@ -991,16 +900,6 @@
         </div>
     </div>
 
-    <!-- Фоновая музыка -->
-    <audio id="bgMusic" loop preload="auto">
-        <source src="./background-music.mp3" type="audio/mpeg">
-    </audio>
-
-    <!-- Кнопка управления музыкой -->
-    <div class="music-control" id="musicControl" onclick="toggleMusic()">
-        🎵
-    </div>
-
     <div class="encouragement-toast" id="encouragementToast">
         <div class="toast-icon">💪</div>
         <div class="toast-content" id="toastContent"></div>
@@ -1013,107 +912,15 @@
         let selectedLeft = null;
         let selectedRight = null;
         let objectionCount = 0;
-        let audioContext;
         let isFirstInteraction = true;
-        let bgMusic = null;
-        let isMusicPlaying = false;
 
         const encouragementMessages = [
             "Почти получилось! Попробуй ещё раз 😊",
             "Ты близка к правде! Давай ещё раз 💫",
-            "Хороший выбор, но не совсем! Пробуй ещё ✨",
+            "Хороший выбор, но не совсем! Пробуй дальше ✨",
             "Не расстраивайся, ещё попытка! 🌟",
             "Чуть-чуть не то! Ты справишься 💪"
         ];
-
-        function initAudio() {
-            if (isFirstInteraction) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                isFirstInteraction = false;
-            }
-        }
-
-        function initBackgroundMusic() {
-            bgMusic = document.getElementById('bgMusic');
-            bgMusic.volume = 0.25;
-        }
-
-        function toggleMusic() {
-            if (!bgMusic) {
-                initBackgroundMusic();
-            }
-            
-            if (isMusicPlaying) {
-                bgMusic.pause();
-                isMusicPlaying = false;
-                document.getElementById('musicControl').textContent = '🔇';
-                document.getElementById('musicControl').classList.remove('playing');
-            } else {
-                bgMusic.play().then(() => {
-                    isMusicPlaying = true;
-                    document.getElementById('musicControl').textContent = '🎵';
-                    document.getElementById('musicControl').classList.add('playing');
-                }).catch(e => console.log("Ошибка воспроизведения:", e));
-            }
-        }
-
-        function playSuccessSound() {
-            if (!audioContext) return;
-            
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
-            oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1);
-            oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2);
-            
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.5);
-        }
-
-        function playErrorSound() {
-            if (!audioContext) return;
-            
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
-            oscillator.frequency.setValueAtTime(200, audioContext.currentTime + 0.1);
-            
-            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.2);
-        }
-
-        function playTransitionSound() {
-            if (!audioContext) return;
-            
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(880, audioContext.currentTime + 0.3);
-            
-            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.3);
-        }
 
         function showEncouragement() {
             const toast = document.getElementById('encouragementToast');
@@ -1130,25 +937,6 @@
                 toast.classList.add('hide');
             }, 3000);
         }
-
-        function changePoodleEmotion(emotion) {
-            const poodleImg = document.getElementById('poodleImage');
-            const poodleMascot = document.getElementById('poodleMascot');
-    
-            const emotions = {
-            greeting: '',      // Приветствие
-            thumbsup: '',    // Лайк
-            shy: '',         // Смущение
-            waiting: ''      // Ожидание
-         };
-    
-         poodleMascot.classList.add('bounce');
-         poodleImg.textContent = emotions[emotion];
-    
-         setTimeout(() => {
-             poodleMascot.classList.remove('bounce');
-         }, 800);
-     }
 
         function createConfetti() {
             const overlay = document.getElementById('successOverlay');
@@ -1209,7 +997,6 @@
         ];
 
         function openEnvelope() {
-            initAudio();
             const envelope = document.getElementById('envelope');
             const letterContent = document.getElementById('letterContent');
             const envelopeButtons = document.getElementById('envelopeButtons');
@@ -1224,18 +1011,6 @@
             setTimeout(() => {
                 envelopeButtons.classList.add('show');
             }, 2500);
-            
-            setTimeout(() => {
-                initBackgroundMusic();
-                bgMusic.play().then(() => {
-                    isMusicPlaying = true;
-                    document.getElementById('musicControl').classList.add('show');
-                    document.getElementById('musicControl').textContent = '🎵';
-                    document.getElementById('musicControl').classList.add('playing');
-                }).catch(e => {
-                    document.getElementById('musicControl').classList.add('show');
-                });
-            }, 1500);
         }
 
         function startGame() {
@@ -1249,7 +1024,6 @@
             setTimeout(() => {
                 envelopeWrapper.style.display = 'none';
                 mainContainer.classList.add('show');
-                changePoodleEmotion('greeting');
                 loadQuestion();
             }, 1000);
         }
@@ -1298,7 +1072,6 @@
         }
 
         function selectMatch(element, side) {
-            initAudio();
             const items = document.querySelectorAll(`.match-item[data-side="${side}"]`);
             items.forEach(item => item.classList.remove('selected'));
             element.classList.add('selected');
@@ -1319,8 +1092,6 @@
             const rightId = selectedRight.getAttribute('data-id');
             
             if (leftId === rightId) {
-                playSuccessSound();
-                changePoodleEmotion(currentQuestion % 2 === 0 ? 'thumbsup' : 'shy');
                 selectedLeft.classList.remove('selected');
                 selectedRight.classList.remove('selected');
                 selectedLeft.classList.add('correct');
@@ -1335,12 +1106,10 @@
                 if (remaining === 0) {
                     createConfetti();
                     setTimeout(() => {
-                        playTransitionSound();
                         nextQuestion();
                     }, 1500);
                 }
             } else {
-                playErrorSound();
                 showEncouragement();
                 selectedLeft.classList.add('wrong');
                 selectedRight.classList.add('wrong');
@@ -1374,21 +1143,16 @@
         }
 
         function checkQuizAnswer(index, isCorrect) {
-            initAudio();
             const options = document.querySelectorAll('.quiz-option');
             options.forEach(opt => opt.onclick = null);
             
             if (isCorrect) {
-                playSuccessSound();
-                changePoodleEmotion(currentQuestion % 2 === 0 ? 'thumbsup' : 'shy');
                 options[index].classList.add('correct');
                 createConfetti();
                 setTimeout(() => {
-                    playTransitionSound();
                     nextQuestion();
                 }, 1500);
             } else {
-                playErrorSound();
                 showEncouragement();
                 options[index].classList.add('wrong');
                 setTimeout(() => {
@@ -1436,7 +1200,6 @@
 
         function showFinalMessage() {
             createConfetti();
-            changePoodleEmotion('waiting');
             document.getElementById('gameArea').style.display = 'none';
             document.querySelector('.progress').style.display = 'none';
             document.getElementById('finalMessage').classList.add('show');
@@ -1446,14 +1209,11 @@
         }
 
         function handleAnswer(answer) {
-            initAudio();
             const responseArea = document.getElementById('responseArea');
             const mainButtons = document.getElementById('mainButtons');
             
             if (answer === 'yes') {
-                playSuccessSound();
                 createConfetti();
-                changePoodleEmotion('thumbsup');
                 mainButtons.style.display = 'none';
                 responseArea.innerHTML = `
                     <div class="response response-success">
@@ -1466,7 +1226,6 @@
                     </div>
                 `;
             } else {
-                changePoodleEmotion('shy');
                 handleObjection();
             }
         }
@@ -1490,7 +1249,7 @@
             },
             {
                 title: 'Последний аргумент 🎯',
-                text: 'Смотри, я потратил время, чтобы сделать этот сайт специально для тебя. Это же надо оценить! 😄 Плюс твой Марси точно будет рад прогулке. Давай сделаем это ради него? Коричневая сладкая булочка-водолей заслуживает adventure!',
+                text: 'Смотри, я потратил время, чтобы сделать этот сайт специально для тебя. Это же надо оценить! 😄 Плюс твой пудель точно будет рад прогулке. Давай сделаем это ради него? Коричневая сладкая булочка-водолей заслуживает adventure!',
                 buttons: [
                     { text: 'За булочку — согласна! 🐕', action: 'yes' },
                     { text: 'Нет, это точно', action: 'final_no' }
@@ -1538,11 +1297,8 @@
         }
 
         function handleObjectionResponse(action) {
-            initAudio();
             if (action === 'yes' || action.includes('yes')) {
-                playSuccessSound();
                 createConfetti();
-                changePoodleEmotion('thumbsup');
                 const responseArea = document.getElementById('responseArea');
                 responseArea.innerHTML = `
                     <div class="response response-success">
@@ -1562,7 +1318,6 @@
         }
 
         function showFinalNo() {
-            changePoodleEmotion('shy');
             const responseArea = document.getElementById('responseArea');
             responseArea.innerHTML = `
                 <div class="response" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe); color: #3730a3;">
