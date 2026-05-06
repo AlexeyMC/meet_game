@@ -891,6 +891,11 @@
             0%, 100% { box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
             50% { box-shadow: 0 4px 30px rgba(192, 92, 126, 0.8); }
         }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -920,7 +925,7 @@
 
     <div class="container" id="mainContainer">
         <div class="poodle-mascot" id="poodleMascot">
-            <img src="poodle-greeting.png" alt="Пудель" id="poodleImage">
+            <img src="./poodle-greeting.png" alt="Пудель" id="poodleImage">
         </div>
 
         <h1>Небольшой квест</h1>
@@ -975,8 +980,7 @@
 
     <!-- Фоновая музыка -->
     <audio id="bgMusic" loop preload="auto">
-        <source src="background-music.mp3" type="audio/mpeg">
-        <source src="background-music.ogg" type="audio/ogg">
+        <source src="./background-music.mp3" type="audio/mpeg">
     </audio>
 
     <!-- Кнопка управления музыкой -->
@@ -1119,10 +1123,10 @@
             const poodleMascot = document.getElementById('poodleMascot');
             
             const emotions = {
-                greeting: 'poodle-greeting.png',
-                thumbsup: 'poodle-thumbsup.png',
-                shy: 'poodle-shy.png',
-                waiting: 'poodle-waiting.png'
+                greeting: './poodle-greeting.png',
+                thumbsup: './poodle-thumbsup.png',
+                shy: './poodle-shy.png',
+                waiting: './poodle-waiting.png'
             };
             
             poodleMascot.classList.add('bounce');
