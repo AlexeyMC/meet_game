@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Специальное приглашение ✨</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant_Garamond:wght@300;400;600&family=Montserrat:wght@300;400;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #2d3561 0%, #c05c7e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .envelope-wrapper {
+            perspective: 1500px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            max-height: 100vh;
+        }
+
+        .envelope {
+            position: relative;
+            width: 400px;
+            height: 280px;
+            cursor: pointer;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            flex-shrink: 0;
+        }
+
+        .envelope:hover:not(.open) {
+            transform: translateY(-10px) rotateX(5deg);
+        }
+
+        .envelope-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            border-radius: 4px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            z-index: 1;
+        }
+
+        .envelope-back::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 200px solid transparent;
+            border-right: 200px solid transparent;
+            border-bottom: 140px solid #d0d0d0;
+            bottom: 0;
+            left: 0;
+        }
+
+        .letter {
+            position: absolute;
+            width: 90%;
+            height: 85%;
+            background: white;
+            left: 5%;
+            top: 8%;
+            border-radius: 4px;
+            padding: 22px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            transition: all 0.3s;
+            z-index: 3;
+            transform: scale(1);
+            opacity: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            overflow: hidden;
+        }
+
+        .envelope.open .letter {
+            transform: scale(1);
+        }
+
+        .letter-content {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 15px;
+            color: #2d3561;
+            line-height: 1.4;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+            flex-shrink: 0;
+        }
+
+        .letter-content.show {
+            opacity: 1;
+        }
+
+        .letter-content p {
+            margin-bottom: 6px;
+        }
+
+        .letter-content p:first-child {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .letter-content p:last-of-type {
+            text-align: right;
+            margin-top: 8px;
+            font-style: italic;
+            font-size: 12px;
+            margin-bottom: 0;
+        }
+
+        .envelope-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 16px;
+            color: white;
+            z-index: 6;
+            pointer-events: auto;
+            transition: opacity 0.8s;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(45, 53, 97, 0.95), rgba(192, 92, 126, 0.95));
+            padding: 16px 30px;
+            border-radius: 50px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+            animation: labelPulse 2s infinite;
+        }
+
+        @keyframes labelPulse {
+            0%, 100% { 
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% { 
+                box-shadow: 0 8px 40px rgba(192, 92, 126, 0.6);
+                transform: translate(-50%, -50%) scale(1.05);
+            }
+        }
+
+        .envelope.open .envelope-label {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .envelope-flap {
+            position: absolute;
+            width: 100%;
+            height: 50%;
+            top: 0;
+            left: 0;
+            transform-origin: top;
+            transform-style: preserve-3d;
+            transition: transform 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 5;
+        }
+
+        .envelope-flap::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 200px solid transparent;
+            border-right: 200px solid transparent;
+            border-top: 140px solid #ffffff;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+
+        .envelope.open .envelope-flap {
+            transform: rotateX(-180deg);
+        }
+
+        .envelope-buttons {
+            text-align: center;
+            opacity: 0;
+            transition: opacity 2.5s ease-in-out;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .envelope-buttons.show {
+            opacity: 1;
+        }
+
+        .btn-start {
+            padding: 13px 35px;
+            background: linear-gradient(135deg, #2d3561, #c05c7e);
+            color: white;
+            border: none;
+            border-radius: 11px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Montserrat', sans-serif;
+            box-shadow: 0 5px 18px rgba(45, 53, 97, 0.3);
+            display: inline-block;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(192, 92, 126, 0.5);
+        }
+
+        .btn-start:active {
+            transform: translateY(-1px);
+        }
+
+        .click-hint {
+            text-align: center;
+            color: white;
+            font-size: 12px;
+            animation: pulse 2s infinite;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-5px); }
+        }
+
+        .container {
+            background: white;
+            border-radius: 18px;
+            padding: 35px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 30px 90px rgba(0,0,0,0.4);
+            display: none;
+            position: relative;
+            overflow: auto;
+            max-height: 98vh;
+        }
+
+        .container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .container {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .container.show {
+            display: flex;
+            flex-direction: column;
+            animation: fadeInScale 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes fadeInScale {
+            from { 
+                opacity: 0; 
+                transform: scale(0.8) translateY(50px);
+            }
+            to { 
+                opacity: 1; 
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .poodle-mascot {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 90px;
+            height: 90px;
+            z-index: 10;
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            flex-shrink: 0;
+        }
+
+        .poodle-mascot img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(-3deg); }
+            50% { transform: translateY(-10px) rotate(3deg); }
+        }
+
+        .poodle-mascot.bounce img {
+            animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0) rotate(-180deg); }
+            50% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        h1 {
+            font-family: 'Cormorant Garamond', serif;
+            color: #2d3561;
+            text-align: center;
+            margin-bottom: 6px;
+            font-size: 2.2em;
+            font-weight: 600;
+            margin-top: 0;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7a7a7a;
+            margin-bottom: 20px;
+            font-size: 0.85em;
+            font-weight: 300;
+        }
+
+        .progress {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .progress::before {
+            content: '';
+            position: absolute;
+            top: 13px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e0e0e0;
+            z-index: 0;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 13px;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #2d3561, #c05c7e);
+            transition: width 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+            position: relative;
+        }
+
+        .progress-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            margin-bottom: 5px;
+        }
+
+        .progress-dot.active {
+            border-color: #2d3561;
+            background: #2d3561;
+            color: white;
+            transform: scale(1.2);
+            box-shadow: 0 0 20px rgba(45, 53, 97, 0.4);
+        }
+
+        .progress-dot.completed {
+            border-color: #c05c7e;
+            background: #c05c7e;
+            color: white;
+            animation: completePulse 0.6s;
+        }
+
+        @keyframes completePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+
+        .progress-label {
+            font-size: 9px;
+            color: #999;
+            text-align: center;
+        }
+
+        .game-area {
+            margin: 20px 0;
+            min-height: auto;
+            position: relative;
+        }
+
+        .question-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 22px;
+            border-radius: 14px;
+            margin-bottom: 18px;
+            border-left: 4px solid #2d3561;
+            animation: slideIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .question-card.slide-out {
+            animation: slideOut 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+
+        @keyframes slideOut {
+            to {
+                opacity: 0;
+                transform: translateX(100px) scale(0.9);
+            }
+        }
+
+        .question-title {
+            font-family: 'Cormorant Garamond', serif;
+            color: #2d3561;
+            margin-bottom: 18px;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .matching-game {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .column h4 {
+            color: #2d3561;
+            margin-bottom: 10px;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .match-item {
+            background: white;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: 2px solid transparent;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+            font-size: 0.85em;
+        }
+
+        .match-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            transition: left 0.5s;
+        }
+
+        .match-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .match-item.selected {
+            border-color: #2d3561;
+            background: #f0f4ff;
+            transform: scale(1.03);
+            box-shadow: 0 6px 20px rgba(45, 53, 97, 0.2);
+        }
+
+        .match-item.correct {
+            border-color: #10b981;
+            background: #d1fae5;
+            animation: successPulse 0.8s;
+        }
+
+        .match-item.correct::before {
+            left: 100%;
+        }
+
+        .match-item.wrong {
+            border-color: #ef4444;
+            background: #fee2e2;
+            animation: shake 0.5s;
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.08); }
+            50% { box-shadow: 0 0 30px rgba(16, 185, 129, 0.6); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+        }
+
+        .quiz-options {
+            display: grid;
+            gap: 9px;
+        }
+
+        .quiz-option {
+            background: white;
+            border: 2px solid #e0e0e0;
+            padding: 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+            font-size: 0.85em;
+        }
+
+        .quiz-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            transition: left 0.5s;
+        }
+
+        .quiz-option:hover {
+            border-color: #2d3561;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(45, 53, 97, 0.15);
+        }
+
+        .quiz-option.correct {
+            border-color: #10b981;
+            background: #d1fae5;
+            animation: successPulse 0.8s;
+        }
+
+        .quiz-option.correct::before {
+            left: 100%;
+        }
+
+        .quiz-option.wrong {
+            border-color: #ef4444;
+            background: #fee2e2;
+            animation: shake 0.5s;
+        }
+
+        .encouragement-toast {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 2px solid #fbbf24;
+            padding: 12px 16px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(251, 191, 36, 0.4);
+            z-index: 1000;
+            max-width: 250px;
+            animation: slideInRight 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            display: none;
+            font-size: 0.8em;
+        }
+
+        .encouragement-toast.show {
+            display: block;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .encouragement-toast.hide {
+            animation: slideOutRight 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+
+        @keyframes slideOutRight {
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .encouragement-toast .toast-content {
+            color: #92400e;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+
+        .encouragement-toast .toast-icon {
+            font-size: 1.5em;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #c05c7e;
+            position: absolute;
+            animation: confetti-fall 2s forwards;
+            z-index: 1000;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .final-message {
+            text-align: center;
+            display: none;
+            width: 100%;
+        }
+
+        .final-message.show {
+            display: block;
+            animation: fadeInScale 1s;
+        }
+
+        .invitation-box {
+            background: linear-gradient(135deg, #2d3561 0%, #c05c7e 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 14px;
+            margin: 18px 0;
+            line-height: 1.7;
+            box-shadow: 0 10px 40px rgba(45, 53, 97, 0.3);
+        }
+
+        .invitation-box p {
+            font-size: 0.95em;
+            margin-bottom: 8px;
+        }
+
+        .invitation-box strong {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1em;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 11px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Montserrat', sans-serif;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-yes {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .btn-yes:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-no {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-no:hover {
+            background: #4b5563;
+            transform: translateY(-2px);
+        }
+
+        .marketing-intro {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #fbbf24;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            text-align: center;
+            animation: fadeInScale 0.6s;
+        }
+
+        .marketing-intro h4 {
+            font-family: 'Cormorant Garamond', serif;
+            color: #92400e;
+            font-size: 1em;
+            margin-bottom: 6px;
+        }
+
+        .marketing-intro p {
+            color: #78350f;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+
+        .objection-handler {
+            display: none;
+            margin-top: 16px;
+            padding: 16px;
+            background: #fff7ed;
+            border-radius: 14px;
+            border: 2px solid #fed7aa;
+        }
+
+        .objection-handler.show {
+            display: block;
+            animation: fadeInScale 0.6s;
+        }
+
+        .objection-title {
+            font-family: 'Cormorant Garamond', serif;
+            color: #c2410c;
+            font-size: 1.05em;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .objection-text {
+            color: #7c2d12;
+            line-height: 1.6;
+            margin-bottom: 12px;
+            font-size: 0.9em;
+        }
+
+        .objection-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 9px 18px;
+            font-size: 12px;
+        }
+
+        .response {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 14px;
+            text-align: center;
+            animation: fadeInScale 0.5s;
+        }
+
+        .response-success {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+        }
+
+        .response h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.6em;
+            margin-bottom: 10px;
+        }
+
+        .response p {
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .emoji-big {
+            font-size: 3em;
+            margin-bottom: 10px;
+            display: block;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Музыка */
+        .music-control {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #2d3561, #c05c7e);
+            border-radius: 50%;
+            border: 3px solid white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+            z-index: 900;
+            opacity: 0;
+        }
+
+        .music-control.show {
+            opacity: 1;
+            animation: fadeInScale 0.5s;
+        }
+
+        .music-control:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(192, 92, 126, 0.5);
+        }
+
+        .music-control.playing {
+            animation: pulse-music 2s infinite;
+        }
+
+        @keyframes pulse-music {
+            0%, 100% { box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+            50% { box-shadow: 0 4px 30px rgba(192, 92, 126, 0.8); }
+        }
+    </style>
+</head>
+<body>
+    <div id="envelopeWrapper" class="envelope-wrapper">
+        <div class="envelope" id="envelope" onclick="openEnvelope()">
+            <div class="envelope-back"></div>
+            
+            <div class="letter">
+                <div class="letter-content" id="letterContent">
+                    <p>Привет!</p>
+                    <p>Я подготовил для тебя небольшой интерактив.</p>
+                    <p>Пройди его, и тебя ждёт интересное предложение 🎯</p>
+                    <p>Приятного прохождения!</p>
+                </div>
+            </div>
+
+            <div class="envelope-label">Нажми, чтобы открыть ✨</div>
+            
+            <div class="envelope-flap"></div>
+        </div>
+        
+        <div class="envelope-buttons" id="envelopeButtons">
+            <button class="btn-start" onclick="startGame()">Поехали! 🚀</button>
+        </div>
+        <div class="click-hint">👆 Кликни на конверт</div>
+    </div>
+
+    <div class="container" id="mainContainer">
+        <div class="poodle-mascot" id="poodleMascot">
+            <img src="poodle-greeting.png" alt="Пудель" id="poodleImage">
+        </div>
+
+        <h1>Небольшой квест</h1>
+        <p class="subtitle">Пройди три этапа, чтобы узнать сюрприз</p>
+        
+        <div class="progress">
+            <div class="progress-line" id="progressLine" style="width: 0%"></div>
+            <div class="progress-step">
+                <div class="progress-dot active" id="dot1">1</div>
+                <div class="progress-label">Соответствия</div>
+            </div>
+            <div class="progress-step">
+                <div class="progress-dot" id="dot2">2</div>
+                <div class="progress-label">О булочке</div>
+            </div>
+            <div class="progress-step">
+                <div class="progress-dot" id="dot3">3</div>
+                <div class="progress-label">Выбор</div>
+            </div>
+        </div>
+
+        <div class="game-area" id="gameArea"></div>
+
+        <div class="final-message" id="finalMessage">
+            <span class="emoji-big">✨</span>
+            <h2 style="font-family: 'Cormorant Garamond', serif; color: #2d3561; margin-bottom: 12px; font-size: 1.8em;">
+                Отлично справилась!
+            </h2>
+            
+            <div class="invitation-box">
+                <strong>Вот что я хотел предложить:</strong>
+                <p>Давай встретимся на прогулку? 🐕</p>
+                <p>Погуляем с твоим коричневым водолеем-пуделем</p>
+                <p>Выпьем кофе, пообщаемся</p>
+                <p style="margin-top: 12px; font-size: 0.85em; opacity: 0.9;">
+                    Никаких обязательств — просто приятно провести время
+                </p>
+            </div>
+
+            <div class="buttons" id="mainButtons">
+                <button class="btn btn-yes" onclick="handleAnswer('yes')">
+                    Звучит здорово! 😊
+                </button>
+                <button class="btn btn-no" onclick="handleAnswer('no')">
+                    Спасибо, но пока нет
+                </button>
+            </div>
+
+            <div id="responseArea"></div>
+        </div>
+    </div>
+
+    <!-- Фоновая музыка -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="background-music.mp3" type="audio/mpeg">
+        <source src="background-music.ogg" type="audio/ogg">
+    </audio>
+
+    <!-- Кнопка управления музыкой -->
+    <div class="music-control" id="musicControl" onclick="toggleMusic()">
+        🎵
+    </div>
+
+    <div class="encouragement-toast" id="encouragementToast">
+        <div class="toast-icon">💪</div>
+        <div class="toast-content" id="toastContent"></div>
+    </div>
+
+    <div class="success-overlay" id="successOverlay"></div>
+
+    <script>
+        let currentQuestion = 0;
+        let selectedLeft = null;
+        let selectedRight = null;
+        let objectionCount = 0;
+        let audioContext;
+        let isFirstInteraction = true;
+        let bgMusic = null;
+        let isMusicPlaying = false;
+
+        const encouragementMessages = [
+            "Почти получилось! Попробуй ещё раз 😊",
+            "Ты близка к правде! Давай ещё раз 💫",
+            "Хороший выбор, но не совсем! Пробуй дальше ✨",
+            "Не расстраивайся, ещё попытка! 🌟",
+            "Чуть-чуть не то! Ты справишься 💪"
+        ];
+
+        function initAudio() {
+            if (isFirstInteraction) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                isFirstInteraction = false;
+            }
+        }
+
+        function initBackgroundMusic() {
+            bgMusic = document.getElementById('bgMusic');
+            bgMusic.volume = 0.25;
+        }
+
+        function toggleMusic() {
+            if (!bgMusic) {
+                initBackgroundMusic();
+            }
+            
+            if (isMusicPlaying) {
+                bgMusic.pause();
+                isMusicPlaying = false;
+                document.getElementById('musicControl').textContent = '🔇';
+                document.getElementById('musicControl').classList.remove('playing');
+            } else {
+                bgMusic.play().then(() => {
+                    isMusicPlaying = true;
+                    document.getElementById('musicControl').textContent = '🎵';
+                    document.getElementById('musicControl').classList.add('playing');
+                }).catch(e => console.log("Ошибка воспроизведения:", e));
+            }
+        }
+
+        function playSuccessSound() {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+            oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1);
+            oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2);
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        function playErrorSound() {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+            oscillator.frequency.setValueAtTime(200, audioContext.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+        }
+
+        function playTransitionSound() {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(880, audioContext.currentTime + 0.3);
+            
+            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        function showEncouragement() {
+            const toast = document.getElementById('encouragementToast');
+            const content = document.getElementById('toastContent');
+            
+            const message = encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
+            content.textContent = message;
+            
+            toast.classList.remove('hide');
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.classList.add('hide');
+            }, 3000);
+        }
+
+        function changePoodleEmotion(emotion) {
+            const poodleImg = document.getElementById('poodleImage');
+            const poodleMascot = document.getElementById('poodleMascot');
+            
+            const emotions = {
+                greeting: 'poodle-greeting.png',
+                thumbsup: 'poodle-thumbsup.png',
+                shy: 'poodle-shy.png',
+                waiting: 'poodle-waiting.png'
+            };
+            
+            poodleMascot.classList.add('bounce');
+            poodleImg.src = emotions[emotion];
+            
+            setTimeout(() => {
+                poodleMascot.classList.remove('bounce');
+            }, 800);
+        }
+
+        function createConfetti() {
+            const overlay = document.getElementById('successOverlay');
+            const colors = ['#2d3561', '#c05c7e', '#10b981', '#fbbf24', '#8b5cf6'];
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 0.3 + 's';
+                    confetti.style.animationDuration = (Math.random() * 1 + 1.5) + 's';
+                    overlay.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+
+        const questions = [
+            {
+                type: 'matching',
+                title: 'Соедини правильные пары',
+                left: [
+                    { id: 1, text: 'Хороший кофе ☕' },
+                    { id: 2, text: 'Февральский именинник 🎂' },
+                    { id: 3, text: 'Приятная прогулка 🌳' },
+                    { id: 4, text: 'Вдохновение 💫' }
+                ],
+                right: [
+                    { id: 3, text: 'Свежий воздух' },
+                    { id: 4, text: 'Новые впечатления' },
+                    { id: 1, text: 'Хорошая компания' },
+                    { id: 2, text: 'Пудель-водолей' }
+                ]
+            },
+            {
+                type: 'quiz',
+                title: 'Что точно оценит сладкая булочка на прогулке?',
+                options: [
+                    { text: 'Посидеть дома и смотреть в стену 🏠', correct: false },
+                    { text: 'Активную прогулку и внимание 🎾', correct: true },
+                    { text: 'Лекцию по квантовой физике 🔬', correct: false },
+                    { text: 'Изучение налогового кодекса 📋', correct: false }
+                ]
+            },
+            {
+                type: 'quiz',
+                title: 'Что делает встречу комфортной?',
+                options: [
+                    { text: 'Давление и обязательства 😰', correct: false },
+                    { text: 'Непонятные ожидания 🤔', correct: false },
+                    { text: 'Лёгкость, искренность и свобода выбора ✨', correct: true },
+                    { text: 'Формальности и неловкость 📎', correct: false }
+                ]
+            }
+        ];
+
+        function openEnvelope() {
+            initAudio();
+            const envelope = document.getElementById('envelope');
+            const letterContent = document.getElementById('letterContent');
+            const envelopeButtons = document.getElementById('envelopeButtons');
+            
+            envelope.classList.add('open');
+            envelope.onclick = null;
+            
+            setTimeout(() => {
+                letterContent.classList.add('show');
+            }, 800);
+            
+            setTimeout(() => {
+                envelopeButtons.classList.add('show');
+            }, 2500);
+            
+            setTimeout(() => {
+                initBackgroundMusic();
+                bgMusic.play().then(() => {
+                    isMusicPlaying = true;
+                    document.getElementById('musicControl').classList.add('show');
+                    document.getElementById('musicControl').textContent = '🎵';
+                    document.getElementById('musicControl').classList.add('playing');
+                }).catch(e => {
+                    document.getElementById('musicControl').classList.add('show');
+                });
+            }, 1500);
+        }
+
+        function startGame() {
+            const envelopeWrapper = document.getElementById('envelopeWrapper');
+            const mainContainer = document.getElementById('mainContainer');
+            
+            envelopeWrapper.style.transition = 'opacity 1s, transform 1s';
+            envelopeWrapper.style.opacity = '0';
+            envelopeWrapper.style.transform = 'scale(0.8)';
+            
+            setTimeout(() => {
+                envelopeWrapper.style.display = 'none';
+                mainContainer.classList.add('show');
+                changePoodleEmotion('greeting');
+                loadQuestion();
+            }, 1000);
+        }
+
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            const gameArea = document.getElementById('gameArea');
+            
+            if (q.type === 'matching') {
+                loadMatchingGame(q);
+            } else if (q.type === 'quiz') {
+                loadQuiz(q);
+            }
+        }
+
+        function loadMatchingGame(q) {
+            const gameArea = document.getElementById('gameArea');
+            
+            const leftHTML = q.left.map((item, index) => 
+                `<div class="match-item" data-id="${item.id}" data-side="left" onclick="selectMatch(this, 'left')">
+                    ${item.text}
+                </div>`
+            ).join('');
+            
+            const rightHTML = q.right.map((item, index) => 
+                `<div class="match-item" data-id="${item.id}" data-side="right" onclick="selectMatch(this, 'right')">
+                    ${item.text}
+                </div>`
+            ).join('');
+            
+            gameArea.innerHTML = `
+                <div class="question-card">
+                    <h3 class="question-title">${q.title}</h3>
+                    <div class="matching-game">
+                        <div class="column">
+                            <h4>Выбери слева</h4>
+                            ${leftHTML}
+                        </div>
+                        <div class="column">
+                            <h4>Найди пару справа</h4>
+                            ${rightHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectMatch(element, side) {
+            initAudio();
+            const items = document.querySelectorAll(`.match-item[data-side="${side}"]`);
+            items.forEach(item => item.classList.remove('selected'));
+            element.classList.add('selected');
+            
+            if (side === 'left') {
+                selectedLeft = element;
+            } else {
+                selectedRight = element;
+            }
+            
+            if (selectedLeft && selectedRight) {
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const leftId = selectedLeft.getAttribute('data-id');
+            const rightId = selectedRight.getAttribute('data-id');
+            
+            if (leftId === rightId) {
+                playSuccessSound();
+                changePoodleEmotion(currentQuestion % 2 === 0 ? 'thumbsup' : 'shy');
+                selectedLeft.classList.remove('selected');
+                selectedRight.classList.remove('selected');
+                selectedLeft.classList.add('correct');
+                selectedRight.classList.add('correct');
+                selectedLeft.onclick = null;
+                selectedRight.onclick = null;
+                
+                selectedLeft = null;
+                selectedRight = null;
+                
+                const remaining = document.querySelectorAll('.match-item:not(.correct)').length;
+                if (remaining === 0) {
+                    createConfetti();
+                    setTimeout(() => {
+                        playTransitionSound();
+                        nextQuestion();
+                    }, 1500);
+                }
+            } else {
+                playErrorSound();
+                showEncouragement();
+                selectedLeft.classList.add('wrong');
+                selectedRight.classList.add('wrong');
+                
+                setTimeout(() => {
+                    selectedLeft.classList.remove('wrong', 'selected');
+                    selectedRight.classList.remove('wrong', 'selected');
+                    selectedLeft = null;
+                    selectedRight = null;
+                }, 600);
+            }
+        }
+
+        function loadQuiz(q) {
+            const gameArea = document.getElementById('gameArea');
+            
+            const optionsHTML = q.options.map((option, index) => 
+                `<div class="quiz-option" onclick="checkQuizAnswer(${index}, ${option.correct})">
+                    ${option.text}
+                </div>`
+            ).join('');
+            
+            gameArea.innerHTML = `
+                <div class="question-card">
+                    <h3 class="question-title">${q.title}</h3>
+                    <div class="quiz-options">
+                        ${optionsHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkQuizAnswer(index, isCorrect) {
+            initAudio();
+            const options = document.querySelectorAll('.quiz-option');
+            options.forEach(opt => opt.onclick = null);
+            
+            if (isCorrect) {
+                playSuccessSound();
+                changePoodleEmotion(currentQuestion % 2 === 0 ? 'thumbsup' : 'shy');
+                options[index].classList.add('correct');
+                createConfetti();
+                setTimeout(() => {
+                    playTransitionSound();
+                    nextQuestion();
+                }, 1500);
+            } else {
+                playErrorSound();
+                showEncouragement();
+                options[index].classList.add('wrong');
+                setTimeout(() => {
+                    options[index].classList.remove('wrong');
+                    options.forEach(opt => opt.onclick = function() {
+                        const idx = Array.from(options).indexOf(opt);
+                        checkQuizAnswer(idx, questions[currentQuestion].options[idx].correct);
+                    });
+                }, 600);
+            }
+        }
+
+        function nextQuestion() {
+            const questionCard = document.querySelector('.question-card');
+            if (questionCard) {
+                questionCard.classList.add('slide-out');
+            }
+            
+            setTimeout(() => {
+                currentQuestion++;
+                updateProgress();
+                
+                if (currentQuestion < questions.length) {
+                    loadQuestion();
+                } else {
+                    showFinalMessage();
+                }
+            }, 500);
+        }
+
+        function updateProgress() {
+            const progress = (currentQuestion / questions.length) * 100;
+            document.getElementById('progressLine').style.width = progress + '%';
+            
+            for (let i = 1; i <= questions.length; i++) {
+                const dot = document.getElementById(`dot${i}`);
+                if (i < currentQuestion + 1) {
+                    dot.classList.remove('active');
+                    dot.classList.add('completed');
+                } else if (i === currentQuestion + 1) {
+                    dot.classList.add('active');
+                }
+            }
+        }
+
+        function showFinalMessage() {
+            createConfetti();
+            changePoodleEmotion('waiting');
+            document.getElementById('gameArea').style.display = 'none';
+            document.querySelector('.progress').style.display = 'none';
+            document.getElementById('finalMessage').classList.add('show');
+            document.getElementById('progressLine').style.width = '100%';
+            document.getElementById('dot3').classList.remove('active');
+            document.getElementById('dot3').classList.add('completed');
+        }
+
+        function handleAnswer(answer) {
+            initAudio();
+            const responseArea = document.getElementById('responseArea');
+            const mainButtons = document.getElementById('mainButtons');
+            
+            if (answer === 'yes') {
+                playSuccessSound();
+                createConfetti();
+                changePoodleEmotion('thumbsup');
+                mainButtons.style.display = 'none';
+                responseArea.innerHTML = `
+                    <div class="response response-success">
+                        <span class="emoji-big">🎉</span>
+                        <h3>Отлично!</h3>
+                        <p>Я очень рад! 😊<br><br>
+                            Напиши мне, когда тебе будет удобно,<br>
+                            и мы договоримся о времени и месте.<br><br>
+                            Будет здорово провести время вместе! ✨</p>
+                    </div>
+                `;
+            } else {
+                changePoodleEmotion('shy');
+                handleObjection();
+            }
+        }
+
+        const objections = [
+            {
+                title: 'Понимаю твои сомнения 🤔',
+                text: 'Знаешь, это правда будет просто прогулка. Без всякого давления или ожиданий. Просто два человека, кофе, милый пудель и свежий воздух. Иногда хорошие моменты начинаются именно с простых вещей.',
+                buttons: [
+                    { text: 'Ладно, убедил 😊', action: 'yes' },
+                    { text: 'Всё равно пока нет', action: 'no' }
+                ]
+            },
+            {
+                title: 'Давай без обязательств 🌟',
+                text: 'Я понимаю, что у тебя сейчас непростой период. Именно поэтому никаких обязательств — только лёгкость. Если во время прогулки почувствуешь дискомфорт — мы всегда можем просто попрощаться. Это как test-drive, только для общения 😄',
+                buttons: [
+                    { text: 'Так звучит лучше ✨', action: 'yes' },
+                    { text: 'Спасибо, но нет', action: 'no' }
+                ]
+            },
+            {
+                title: 'Последний аргумент 🎯',
+                text: 'Смотри, я потратил время, чтобы сделать этот сайт специально для тебя. Это же надо оценить! 😄 Плюс твой пудель точно будет рад прогулке. Давай сделаем это ради него? Коричневая сладкая булочка-водолей заслуживает adventure!',
+                buttons: [
+                    { text: 'За булочку — согласна! 🐕', action: 'yes' },
+                    { text: 'Нет, это точно', action: 'final_no' }
+                ]
+            }
+        ];
+
+        function handleObjection() {
+            const responseArea = document.getElementById('responseArea');
+            const mainButtons = document.getElementById('mainButtons');
+            
+            if (objectionCount < objections.length) {
+                const obj = objections[objectionCount];
+                mainButtons.style.display = 'none';
+                
+                const buttonsHTML = obj.buttons.map(btn => 
+                    `<button class="btn ${btn.action === 'yes' || btn.action.includes('yes') ? 'btn-yes' : 'btn-no'} btn-small" 
+                            onclick="handleObjectionResponse('${btn.action}')">
+                        ${btn.text}
+                    </button>`
+                ).join('');
+                
+                const marketingIntro = objectionCount === 0 ? `
+                    <div class="marketing-intro">
+                        <h4>🎯 А теперь включаем режим "дружелюбного маркетинга"</h4>
+                        <p>Давай попробуем разобрать твои сомнения в лёгкой форме 😊</p>
+                    </div>
+                ` : '';
+                
+                responseArea.innerHTML = `
+                    ${marketingIntro}
+                    <div class="objection-handler show">
+                        <h3 class="objection-title">${obj.title}</h3>
+                        <p class="objection-text">${obj.text}</p>
+                        <div class="objection-buttons">
+                            ${buttonsHTML}
+                        </div>
+                    </div>
+                `;
+                
+                objectionCount++;
+            } else {
+                showFinalNo();
+            }
+        }
+
+        function handleObjectionResponse(action) {
+            initAudio();
+            if (action === 'yes' || action.includes('yes')) {
+                playSuccessSound();
+                createConfetti();
+                changePoodleEmotion('thumbsup');
+                const responseArea = document.getElementById('responseArea');
+                responseArea.innerHTML = `
+                    <div class="response response-success">
+                        <span class="emoji-big">🎉</span>
+                        <h3>Ура! Я рад, что убедил! 😊</h3>
+                        <p>Знаешь, настойчивость — это тоже искусство 😄<br><br>
+                            Напиши мне, когда тебе будет удобно,<br>
+                            и мы всё организуем! Минут 5, 10, пятого... 4 5 утра)<br><br>
+                            Обещаю, что будет приятно ✨</p>
+                    </div>
+                `;
+            } else if (action === 'final_no') {
+                showFinalNo();
+            } else {
+                handleObjection();
+            }
+        }
+
+        function showFinalNo() {
+            changePoodleEmotion('shy');
+            const responseArea = document.getElementById('responseArea');
+            responseArea.innerHTML = `
+                <div class="response" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe); color: #3730a3;">
+                    <span class="emoji-big">🌸</span>
+                    <h3>Всё понимаю</h3>
+                    <p>Спасибо, что прошла квест и уделила время 😊<br><br>
+                        Я уважаю твоё решение.<br>
+                        Попробуем в другой раз.<br><br>
+                        Милая и обоятельная красотка! ✨</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
