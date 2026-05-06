@@ -899,6 +899,19 @@
     </style>
 </head>
 <body>
+    <script>
+    console.log('Проверка путей:');
+    console.log('Текущий URL:', window.location.href);
+    
+    // Проверяем доступность файлов
+    fetch('./poodle-greeting.png')
+        .then(r => console.log('Пудель ✓:', r.ok))
+        .catch(e => console.log('Ошибка пуделя:', e.message));
+    
+    fetch('./background-music.mp3')
+        .then(r => console.log('Музыка ✓:', r.ok))
+        .catch(e => console.log('Ошибка музыки:', e.message));
+</script>
     <div id="envelopeWrapper" class="envelope-wrapper">
         <div class="envelope" id="envelope" onclick="openEnvelope()">
             <div class="envelope-back"></div>
