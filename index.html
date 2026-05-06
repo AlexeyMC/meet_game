@@ -2,8 +2,10 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Специальное приглашение ✨</title>
+    <!-- Подключение Telegram WebApp -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cormorant_Garamond:wght@300;400;600&family=Montserrat:wght@300;400;600&display=swap');
 
@@ -11,21 +13,25 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         html, body {
             width: 100%;
             height: 100%;
             overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         body {
             font-family: 'Montserrat', sans-serif;
-            background: linear-gradient(135deg, #2d3561 0%, #c05c7e 100%);
+            background: var(--tg-theme-bg-color, linear-gradient(135deg, #2d3561 0%, #c05c7e 100%));
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 10px;
+            color: var(--tg-theme-text-color, #2d3561);
         }
 
         .envelope-wrapper {
@@ -908,11 +914,98 @@
     <div class="success-overlay" id="successOverlay"></div>
 
     <script>
+        // ===== ЗВУКОВЫЕ ЭФФЕКТЫ (Web Audio API) =====
+        let audioContext;
+        let isFirstInteraction = true;
+
+        function initAudio() {
+            if (isFirstInteraction) {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    isFirstInteraction = false;
+                } catch (e) {
+                    console.log('AudioContext не поддерживается');
+                }
+            }
+        }
+
+        // Звук правильного ответа (приятный арпеджио)
+        function playSuccessSound() {
+            if (!audioContext) return;
+            const now = audioContext.currentTime;
+            
+            [523.25, 659.25, 783.99].forEach((freq, i) => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now + i * 0.1);
+                gain.gain.setValueAtTime(0.25, now + i * 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.3);
+                osc.start(now + i * 0.1);
+                osc.stop(now + i * 0.1 + 0.3);
+            });
+        }
+
+        // Звук неправильного ответа (мягкий "oops")
+        function playErrorSound() {
+            if (!audioContext) return;
+            const now = audioContext.currentTime;
+            
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.exponentialRampToValueAtTime(150, now + 0.15);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+            osc.start(now);
+            osc.stop(now + 0.2);
+        }
+
+        // Звук перехода между вопросами
+        function playTransitionSound() {
+            if (!audioContext) return;
+            const now = audioContext.currentTime;
+            
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(440, now);
+            osc.frequency.exponentialRampToValueAtTime(880, now + 0.25);
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        }
+
+        // Звук клика (лёгкий "tick")
+        function playClickSound() {
+            if (!audioContext) return;
+            const now = audioContext.currentTime;
+            
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(800, now);
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+            osc.start(now);
+            osc.stop(now + 0.05);
+        }
+
+        // ===== ЛОГИКА ПРИЛОЖЕНИЯ =====
         let currentQuestion = 0;
         let selectedLeft = null;
         let selectedRight = null;
         let objectionCount = 0;
-        let isFirstInteraction = true;
 
         const encouragementMessages = [
             "Почти получилось! Попробуй ещё раз 😊",
@@ -925,13 +1018,10 @@
         function showEncouragement() {
             const toast = document.getElementById('encouragementToast');
             const content = document.getElementById('toastContent');
-            
             const message = encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
             content.textContent = message;
-            
             toast.classList.remove('hide');
             toast.classList.add('show');
-            
             setTimeout(() => {
                 toast.classList.remove('show');
                 toast.classList.add('hide');
@@ -941,7 +1031,6 @@
         function createConfetti() {
             const overlay = document.getElementById('successOverlay');
             const colors = ['#2d3561', '#c05c7e', '#10b981', '#fbbf24', '#8b5cf6'];
-            
             for (let i = 0; i < 50; i++) {
                 setTimeout(() => {
                     const confetti = document.createElement('div');
@@ -951,7 +1040,6 @@
                     confetti.style.animationDelay = Math.random() * 0.3 + 's';
                     confetti.style.animationDuration = (Math.random() * 1 + 1.5) + 's';
                     overlay.appendChild(confetti);
-                    
                     setTimeout(() => confetti.remove(), 3000);
                 }, i * 30);
             }
@@ -997,30 +1085,25 @@
         ];
 
         function openEnvelope() {
+            initAudio();
+            playClickSound();
             const envelope = document.getElementById('envelope');
             const letterContent = document.getElementById('letterContent');
             const envelopeButtons = document.getElementById('envelopeButtons');
-            
             envelope.classList.add('open');
             envelope.onclick = null;
-            
-            setTimeout(() => {
-                letterContent.classList.add('show');
-            }, 800);
-            
-            setTimeout(() => {
-                envelopeButtons.classList.add('show');
-            }, 2500);
+            setTimeout(() => letterContent.classList.add('show'), 800);
+            setTimeout(() => envelopeButtons.classList.add('show'), 2500);
         }
 
         function startGame() {
+            initAudio();
+            playClickSound();
             const envelopeWrapper = document.getElementById('envelopeWrapper');
             const mainContainer = document.getElementById('mainContainer');
-            
             envelopeWrapper.style.transition = 'opacity 1s, transform 1s';
             envelopeWrapper.style.opacity = '0';
             envelopeWrapper.style.transform = 'scale(0.8)';
-            
             setTimeout(() => {
                 envelopeWrapper.style.display = 'none';
                 mainContainer.classList.add('show');
@@ -1030,90 +1113,61 @@
 
         function loadQuestion() {
             const q = questions[currentQuestion];
-            const gameArea = document.getElementById('gameArea');
-            
-            if (q.type === 'matching') {
-                loadMatchingGame(q);
-            } else if (q.type === 'quiz') {
-                loadQuiz(q);
-            }
+            if (q.type === 'matching') loadMatchingGame(q);
+            else if (q.type === 'quiz') loadQuiz(q);
         }
 
         function loadMatchingGame(q) {
             const gameArea = document.getElementById('gameArea');
-            
-            const leftHTML = q.left.map((item, index) => 
-                `<div class="match-item" data-id="${item.id}" data-side="left" onclick="selectMatch(this, 'left')">
-                    ${item.text}
-                </div>`
+            const leftHTML = q.left.map(item => 
+                `<div class="match-item" data-id="${item.id}" data-side="left" onclick="selectMatch(this, 'left')">${item.text}</div>`
             ).join('');
-            
-            const rightHTML = q.right.map((item, index) => 
-                `<div class="match-item" data-id="${item.id}" data-side="right" onclick="selectMatch(this, 'right')">
-                    ${item.text}
-                </div>`
+            const rightHTML = q.right.map(item => 
+                `<div class="match-item" data-id="${item.id}" data-side="right" onclick="selectMatch(this, 'right')">${item.text}</div>`
             ).join('');
-            
             gameArea.innerHTML = `
                 <div class="question-card">
                     <h3 class="question-title">${q.title}</h3>
                     <div class="matching-game">
-                        <div class="column">
-                            <h4>Выбери слева</h4>
-                            ${leftHTML}
-                        </div>
-                        <div class="column">
-                            <h4>Найди пару справа</h4>
-                            ${rightHTML}
-                        </div>
+                        <div class="column"><h4>Выбери слева</h4>${leftHTML}</div>
+                        <div class="column"><h4>Найди пару справа</h4>${rightHTML}</div>
                     </div>
-                </div>
-            `;
+                </div>`;
         }
 
         function selectMatch(element, side) {
-            const items = document.querySelectorAll(`.match-item[data-side="${side}"]`);
-            items.forEach(item => item.classList.remove('selected'));
+            initAudio();
+            playClickSound();
+            document.querySelectorAll(`.match-item[data-side="${side}"]`).forEach(item => item.classList.remove('selected'));
             element.classList.add('selected');
-            
-            if (side === 'left') {
-                selectedLeft = element;
-            } else {
-                selectedRight = element;
-            }
-            
-            if (selectedLeft && selectedRight) {
-                checkMatch();
-            }
+            if (side === 'left') selectedLeft = element;
+            else selectedRight = element;
+            if (selectedLeft && selectedRight) checkMatch();
         }
 
         function checkMatch() {
             const leftId = selectedLeft.getAttribute('data-id');
             const rightId = selectedRight.getAttribute('data-id');
-            
             if (leftId === rightId) {
+                playSuccessSound();
                 selectedLeft.classList.remove('selected');
                 selectedRight.classList.remove('selected');
                 selectedLeft.classList.add('correct');
                 selectedRight.classList.add('correct');
                 selectedLeft.onclick = null;
                 selectedRight.onclick = null;
-                
                 selectedLeft = null;
                 selectedRight = null;
-                
                 const remaining = document.querySelectorAll('.match-item:not(.correct)').length;
                 if (remaining === 0) {
                     createConfetti();
-                    setTimeout(() => {
-                        nextQuestion();
-                    }, 1500);
+                    setTimeout(() => { playTransitionSound(); nextQuestion(); }, 1500);
                 }
             } else {
+                playErrorSound();
                 showEncouragement();
                 selectedLeft.classList.add('wrong');
                 selectedRight.classList.add('wrong');
-                
                 setTimeout(() => {
                     selectedLeft.classList.remove('wrong', 'selected');
                     selectedRight.classList.remove('wrong', 'selected');
@@ -1125,34 +1179,28 @@
 
         function loadQuiz(q) {
             const gameArea = document.getElementById('gameArea');
-            
             const optionsHTML = q.options.map((option, index) => 
-                `<div class="quiz-option" onclick="checkQuizAnswer(${index}, ${option.correct})">
-                    ${option.text}
-                </div>`
+                `<div class="quiz-option" onclick="checkQuizAnswer(${index}, ${option.correct})">${option.text}</div>`
             ).join('');
-            
             gameArea.innerHTML = `
                 <div class="question-card">
                     <h3 class="question-title">${q.title}</h3>
-                    <div class="quiz-options">
-                        ${optionsHTML}
-                    </div>
-                </div>
-            `;
+                    <div class="quiz-options">${optionsHTML}</div>
+                </div>`;
         }
 
         function checkQuizAnswer(index, isCorrect) {
+            initAudio();
+            playClickSound();
             const options = document.querySelectorAll('.quiz-option');
             options.forEach(opt => opt.onclick = null);
-            
             if (isCorrect) {
+                playSuccessSound();
                 options[index].classList.add('correct');
                 createConfetti();
-                setTimeout(() => {
-                    nextQuestion();
-                }, 1500);
+                setTimeout(() => { playTransitionSound(); nextQuestion(); }, 1500);
             } else {
+                playErrorSound();
                 showEncouragement();
                 options[index].classList.add('wrong');
                 setTimeout(() => {
@@ -1167,26 +1215,18 @@
 
         function nextQuestion() {
             const questionCard = document.querySelector('.question-card');
-            if (questionCard) {
-                questionCard.classList.add('slide-out');
-            }
-            
+            if (questionCard) questionCard.classList.add('slide-out');
             setTimeout(() => {
                 currentQuestion++;
                 updateProgress();
-                
-                if (currentQuestion < questions.length) {
-                    loadQuestion();
-                } else {
-                    showFinalMessage();
-                }
+                if (currentQuestion < questions.length) loadQuestion();
+                else showFinalMessage();
             }, 500);
         }
 
         function updateProgress() {
             const progress = (currentQuestion / questions.length) * 100;
             document.getElementById('progressLine').style.width = progress + '%';
-            
             for (let i = 1; i <= questions.length; i++) {
                 const dot = document.getElementById(`dot${i}`);
                 if (i < currentQuestion + 1) {
@@ -1209,10 +1249,12 @@
         }
 
         function handleAnswer(answer) {
+            initAudio();
+            playClickSound();
             const responseArea = document.getElementById('responseArea');
             const mainButtons = document.getElementById('mainButtons');
-            
             if (answer === 'yes') {
+                playSuccessSound();
                 createConfetti();
                 mainButtons.style.display = 'none';
                 responseArea.innerHTML = `
@@ -1223,8 +1265,7 @@
                             Напиши мне, когда тебе будет удобно,<br>
                             и мы договоримся о времени и месте.<br><br>
                             Будет здорово провести время вместе! ✨</p>
-                    </div>
-                `;
+                    </div>`;
             } else {
                 handleObjection();
             }
@@ -1260,36 +1301,23 @@
         function handleObjection() {
             const responseArea = document.getElementById('responseArea');
             const mainButtons = document.getElementById('mainButtons');
-            
             if (objectionCount < objections.length) {
                 const obj = objections[objectionCount];
                 mainButtons.style.display = 'none';
-                
                 const buttonsHTML = obj.buttons.map(btn => 
-                    `<button class="btn ${btn.action === 'yes' || btn.action.includes('yes') ? 'btn-yes' : 'btn-no'} btn-small" 
-                            onclick="handleObjectionResponse('${btn.action}')">
-                        ${btn.text}
-                    </button>`
+                    `<button class="btn ${btn.action === 'yes' || btn.action.includes('yes') ? 'btn-yes' : 'btn-no'} btn-small" onclick="handleObjectionResponse('${btn.action}')">${btn.text}</button>`
                 ).join('');
-                
                 const marketingIntro = objectionCount === 0 ? `
                     <div class="marketing-intro">
                         <h4>🎯 А теперь включаем режим "дружелюбного маркетинга"</h4>
                         <p>Давай попробуем разобрать твои сомнения в лёгкой форме 😊</p>
-                    </div>
-                ` : '';
-                
-                responseArea.innerHTML = `
-                    ${marketingIntro}
+                    </div>` : '';
+                responseArea.innerHTML = `${marketingIntro}
                     <div class="objection-handler show">
                         <h3 class="objection-title">${obj.title}</h3>
                         <p class="objection-text">${obj.text}</p>
-                        <div class="objection-buttons">
-                            ${buttonsHTML}
-                        </div>
-                    </div>
-                `;
-                
+                        <div class="objection-buttons">${buttonsHTML}</div>
+                    </div>`;
                 objectionCount++;
             } else {
                 showFinalNo();
@@ -1297,7 +1325,10 @@
         }
 
         function handleObjectionResponse(action) {
+            initAudio();
+            playClickSound();
             if (action === 'yes' || action.includes('yes')) {
+                playSuccessSound();
                 createConfetti();
                 const responseArea = document.getElementById('responseArea');
                 responseArea.innerHTML = `
@@ -1306,10 +1337,9 @@
                         <h3>Ура! Я рад, что убедил! 😊</h3>
                         <p>Знаешь, настойчивость — это тоже искусство 😄<br><br>
                             Напиши мне, когда тебе будет удобно,<br>
-                            и мы всё организуем! Минут 5, 10, пятого... 4 5 утра)<br><br>
+                            и мы всё организуем!<br><br>
                             Обещаю, что будет приятно ✨</p>
-                    </div>
-                `;
+                    </div>`;
             } else if (action === 'final_no') {
                 showFinalNo();
             } else {
@@ -1327,8 +1357,15 @@
                         Я уважаю твоё решение.<br>
                         Попробуем в другой раз.<br><br>
                         Милая и обоятельная красотка! ✨</p>
-                </div>
-            `;
+                </div>`;
+        }
+
+        // Инициализация Telegram WebApp (если открыто в боте)
+        if (window.Telegram?.WebApp) {
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand();
+            document.body.style.background = Telegram.WebApp.backgroundColor || 'linear-gradient(135deg, #2d3561 0%, #c05c7e 100%)';
+            document.body.style.color = Telegram.WebApp.textColor || '#2d3561';
         }
     </script>
 </body>
