@@ -938,8 +938,8 @@
 
     <div class="container" id="mainContainer">
         <div class="poodle-mascot" id="poodleMascot">
-            <img src="./poodle-greeting.png" alt="Пудель" id="poodleImage">
-        </div>
+    <div id="poodleImage" style="font-size: 90px; display: flex; align-items: center; justify-content: center; height: 100%;">🐩</div>
+</div>
 
         <h1>Небольшой квест</h1>
         <p class="subtitle">Пройди три этапа, чтобы узнать сюрприз</p>
@@ -1134,21 +1134,21 @@
         function changePoodleEmotion(emotion) {
             const poodleImg = document.getElementById('poodleImage');
             const poodleMascot = document.getElementById('poodleMascot');
-            
+    
             const emotions = {
-                greeting: './poodle-greeting.png',
-                thumbsup: './poodle-thumbsup.png',
-                shy: './poodle-shy.png',
-                waiting: './poodle-waiting.png'
-            };
-            
-            poodleMascot.classList.add('bounce');
-            poodleImg.src = emotions[emotion];
-            
-            setTimeout(() => {
-                poodleMascot.classList.remove('bounce');
-            }, 800);
-        }
+            greeting: '🐩',      // Приветствие
+            thumbsup: '🐩👍',    // Лайк
+            shy: '🐩😳',         // Смущение
+            waiting: '🐩🤔'      // Ожидание
+         };
+    
+         poodleMascot.classList.add('bounce');
+         poodleImg.textContent = emotions[emotion];
+    
+         setTimeout(() => {
+             poodleMascot.classList.remove('bounce');
+         }, 800);
+     }
 
         function createConfetti() {
             const overlay = document.getElementById('successOverlay');
